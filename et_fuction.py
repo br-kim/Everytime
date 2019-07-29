@@ -15,9 +15,9 @@ def login_request(my_id,my_pw) :
     login_session.post(url=login_url,data=login_body)
     return login_session
 
-def get_my_commented_article_list(session) :
+def get_my_commented_article_list(session,start_num=0) :
     article_list_url = 'https://everytime.kr/find/board/article/list'
-    article_list_body = {'id':'mycommentarticle','limit_num':20,'start_num':0,'moiminfo':'true'}
+    article_list_body = {'id':'mycommentarticle','limit_num':20,'start_num':start_num,'moiminfo':'true'}
     article_list_res = session.post(url=article_list_url,data=article_list_body,headers=hdr)
     return article_list_res
 
@@ -39,9 +39,9 @@ def write_article(session,title,text,anonym=1) : #기본으로 익명으로 작�
     write_res = session.post(url=write_url,data=write_body,headers=hdr)
     return write_res
 
-def get_article_list(session,target_id) : #target_id 게시판의 글 목록을 요청한다.
+def get_article_list(session,target_id,start_num=0) : #target_id 게시판의 글 목록을 요청한다.
     article_list_url = 'https://everytime.kr/find/board/article/list'
-    article_list_body = {'id':target_id,'limit_num':20,'start_num':0,'moiminfo':'true'}
+    article_list_body = {'id':target_id,'limit_num':20,'start_num':start_num,'moiminfo':'true'}
     article_list_res = session.post(url=article_list_url,data=article_list_body,headers=hdr)
     return article_list_res
 
@@ -51,8 +51,8 @@ def vote_article(session,target_id) :
     vote_article_res = session.post(url=vote_article_url,data=vote_article_body,headers=hdr)
     return vote_article_res
 
-def get_my_article(session) :
+def get_my_article(session,start_num=0) : #start_num 입력시 그 번호부터 20개 요청.
     my_article_url = 'https://everytime.kr/find/board/article/list'
-    my_article_body = {'id' : 'myarticle', 'limit_num' : 20 , 'start_num' : 0, 'moiminfo' : 'true'}
+    my_article_body = {'id' : 'myarticle', 'limit_num' : 20 , 'start_num' : start_num, 'moiminfo' : 'true'}
     my_article_res = session.post(url=my_article_url,data=my_article_body,headers=hdr)
     return my_article_res

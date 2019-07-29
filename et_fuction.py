@@ -50,3 +50,9 @@ def vote_article(session,target_id) :
     vote_article_body = {'id':target_id,'vote':1}
     vote_article_res = session.post(url=vote_article_url,data=vote_article_body,headers=hdr)
     return vote_article_res
+
+def get_my_article(session) :
+    my_article_url = 'https://everytime.kr/find/board/article/list'
+    my_article_body = {'id' : 'myarticle', 'limit_num' : 20 , 'start_num' : 0, 'moiminfo' : 'true'}
+    my_article_res = session.post(url=my_article_url,data=my_article_body,headers=hdr)
+    return my_article_res

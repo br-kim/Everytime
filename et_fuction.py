@@ -1,8 +1,7 @@
 import requests
 
 hdr = {'User-Agent': 
-'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-' (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36',
+"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36",
 'Host' : 'everytime.kr',
 'Origin': 'https://everytime.kr',
 'X-Requested-With': 'XMLHttpRequest'
@@ -60,3 +59,9 @@ def delete_comment(session,target_id) :
     delete_comment_body = {'id':target_id}
     delete_comment_res = session.post(url=delete_comment_url,data=delete_comment_body,headers=hdr)
     return delete_comment_res
+
+def delete_article(session,target_id) :
+    delete_article_url = "https://everytime.kr/remove/board/article"
+    delete_article_body = {"id":target_id}
+    delete_article_res = session.post(url=delete_article_url,data=delete_article_body,headers=hdr)
+    return delete_article_res

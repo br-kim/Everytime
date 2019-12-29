@@ -43,7 +43,7 @@ class Everytime :
 
     #remove 
     def delete(self,target,target_id) :
-        """target = article or comment
+        """target = 'article' or 'comment'
         target_id = target's number
         """
         url = f'https://everytime.kr/remove/board/{target}'
@@ -51,27 +51,31 @@ class Everytime :
         delete_comment_res = self.session.post(url=url,data=body,headers=self.hdr)
         return delete_comment_res
 
-def get_article_comment(session,target_id) : #target_id 글의 전체 내용과 댓글을 요청한다.
-    article_comment_url = 'https://everytime.kr/find/board/comment/list'
-    article_comment_body = {'id':target_id,'limit_num':-1,'moiminfo':'true'}
-    article_comment_res = session.post(url=article_comment_url,data=article_comment_body,headers=self.hdr)
-    return article_comment_res
+    def get_article_comment(self,target_id) : #target_id 글의 전체 내용과 댓글을 요청한다.
+        url = 'https://everytime.kr/find/board/comment/list'
+        body = {'id':target_id,'limit_num':-1,'moiminfo':'true'}
+        article_comment_res = self.session.post(url=url,data=body,headers=self.hdr)
+        return article_comment_res
 
-def get_article_list(session,target_id,start_num=0) : #target_id 게시판의 글 목록을 요청한다.
-    article_list_url = 'https://everytime.kr/find/board/article/list'
-    article_list_body = {'id':target_id,'limit_num':20,'start_num':start_num,'moiminfo':'true'}
-    article_list_res = session.post(url=article_list_url,data=article_list_body,headers=self.hdr)
-    return article_list_res
+    def get_article_list(self,target_id,start_num=0) : #target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.
+        """ target_id = target board's number or 'myarticle'(get My writing)
+        """
+        url = 'https://everytime.kr/find/board/article/list'
+        body = {'id':target_id,'limit_num':20,'start_num':start_num,'moiminfo':'true'}
+        article_list_res = self.session.post(url=url,data=body,headers=self.hdr)
+        return article_list_res
 
-def get_my_article(session,start_num=0) : #start_num 입력시 그 번호부터 20개 요청.
-    my_article_url = 'https://everytime.kr/find/board/article/list'
-    my_article_body = {'id' : 'myarticle', 'limit_num' : 20 , 'start_num' : start_num, 'moiminfo' : 'true'}
-    my_article_res = session.post(url=my_article_url,data=my_article_body,headers=self.hdr)
-    return my_article_res
-
-#save
-def write_article(session,title,text,target_id,anonym=1) : #기본으로 익명으로 작성,anonym=0 은 아이디 공개 작성
-    write_url = 'https://everytime.kr/save/board/article'
-    write_body = {'id':target_id,'text':text,'is_anonym':anonym,'title':title}
-    write_res = session.post(url=write_url,data=write_body,headers=self.hdr)
-    return write_res
+    #save
+    def write_article(self,text,target_id,title=None,anonym=1) : #기본으로 익명으로 작성,anonym=0 은 아이디 공개 작성
+        """ anonym : Writing anonymously => 1 Writing by name => 0 (default 1)
+        writing on freeboard need 'title'
+        'target_id' => board number
+        """ 
+        write_body = None
+        write_url = 'https://everytime.kr/save/board/article'
+        if title : #freeboard
+            write_body = {'id':target_id,'text':text,'is_anonym':anonym,'title':title} 
+        else : #not freeboard
+            write_body = {'id':target_id,'text':text,'is_anonym':anonym}
+        write_res = self.session.post(url=write_url,data=write_body,headers=self.hdr)
+        return write_res

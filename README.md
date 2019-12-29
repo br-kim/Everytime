@@ -7,6 +7,8 @@ https://everytime.kr/
 
 기본적으로 requests 모듈이 필요합니다.  
 
+파이썬 3.6 이상
+
 https://pypi.org/project/requests/  
 
 ```

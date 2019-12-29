@@ -27,6 +27,9 @@ class Everytime :
         return response.text
 
     def vote(self,target,target_id) :
+        """target = article or comment
+        target_id = target's number
+        """
         url = f'https://everytime.kr/save/board/{target}/vote'
         body = {'id':target_id,'vote':1}
         response = self.session.post(url=url,data=body,headers=self.hdr)
@@ -40,6 +43,9 @@ class Everytime :
 
     #remove 
     def delete(self,target,target_id) :
+        """target = article or comment
+        target_id = target's number
+        """
         url = f'https://everytime.kr/remove/board/{target}'
         body = {'id':target_id}
         delete_comment_res = self.session.post(url=url,data=body,headers=self.hdr)

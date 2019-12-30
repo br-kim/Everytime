@@ -17,14 +17,24 @@ class Everytime :
         self.user_id = my_id
         self.user_pwd = my_pwd
         self.session = requests.session()
+        self.login_flag = False
     
+    def __str__(self):
+        if not self.login_flag :
+            return 'not logged in session'
+        else :
+            return f'{self.user_id} logged in session' 
+
     def login(self) :
         url = 'https://everytime.kr/user/login'
         body = {'userid' :self.user_id, 'password': self.user_pwd,'redirect':'/'}
         response = self.session.post(url=url,data=body)
         if ('아이디나 비밀번호를 바르게 입력해주세요.' in response.text) :
             print("로그인 실패.")
-        return response.text
+            return None
+        else : 
+            self.login_flag = True
+            return response.text
 
     def vote(self,target,target_id) :
         """target = article or comment

@@ -20,10 +20,10 @@ class Everytime :
         self.login_flag = False
     
     def __str__(self):
-        if not self.login_flag :
-            return 'not logged in session'
+        if self.login_flag :
+            return f'{self.user_id} logged in session'
         else :
-            return f'{self.user_id} logged in session' 
+            return 'not logged in session'
 
     def login(self) :
         url = 'https://everytime.kr/user/login'
@@ -61,17 +61,17 @@ class Everytime :
         delete_comment_res = self.session.post(url=url,data=body,headers=self.hdr)
         return delete_comment_res
 
-    def get_article_comment(self,target_id) : #target_id 글의 전체 내용과 댓글을 요청한다.
+    def get_article_comment(self,target_article_id) : #target_id 글의 전체 내용과 댓글을 요청한다.
         url = 'https://everytime.kr/find/board/comment/list'
-        body = {'id':target_id,'limit_num':-1,'moiminfo':'true'}
+        body = {'id':target_article_id,'limit_num':-1,'moiminfo':'true'}
         article_comment_res = self.session.post(url=url,data=body,headers=self.hdr)
         return article_comment_res
 
-    def get_article_list(self,target_id,start_num=0) : #target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.
+    def get_article_list(self,target_board_id,start_num=0) : #target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.
         """ target_id = target board's number or 'myarticle'(get My writing)
         """
         url = 'https://everytime.kr/find/board/article/list'
-        body = {'id':target_id,'limit_num':20,'start_num':start_num,'moiminfo':'true'}
+        body = {'id':target_board_id,'limit_num':20,'start_num':start_num,'moiminfo':'true'}
         article_list_res = self.session.post(url=url,data=body,headers=self.hdr)
         return article_list_res
 
@@ -81,11 +81,12 @@ class Everytime :
         writing on freeboard need 'title'
         'target_id' => board number
         """ 
-        write_body = None
-        write_url = 'https://everytime.kr/save/board/article'
+        url = 'https://everytime.kr/save/board/article'
+        body = None
         if title : #freeboard
             write_body = {'id':target_id,'text':text,'is_anonym':anonym,'title':title} 
         else : #not freeboard
             write_body = {'id':target_id,'text':text,'is_anonym':anonym}
-        write_res = self.session.post(url=write_url,data=write_body,headers=self.hdr)
+
+        write_res = self.session.post(url=url,data=body,headers=self.hdr)
         return write_res

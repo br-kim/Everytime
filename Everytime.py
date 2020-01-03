@@ -13,9 +13,7 @@ class Everytime :
             'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
         }
 
-    def __init__(self,my_id,my_pwd):
-        self.user_id = my_id
-        self.user_pwd = my_pwd
+    def __init__(self):
         self.session = requests.session()
         self.login_flag = False
     
@@ -25,16 +23,17 @@ class Everytime :
         else :
             return 'not logged in session'
 
-    def login(self) :
+    def login(self,my_id,my_pwd) :
+        self.user_id = my_id
         url = 'https://everytime.kr/user/login'
-        body = {'userid' :self.user_id, 'password': self.user_pwd,'redirect':'/'}
+        body = {'userid' :self.user_id, 'password': my_pwd,'redirect':'/'}
         response = self.session.post(url=url,data=body)
         if ('아이디나 비밀번호를 바르게 입력해주세요.' in response.text) :
             print("로그인 실패.")
             return None
         else : 
             self.login_flag = True
-            return response.text
+            return response
 
     def vote(self,target,target_id) :
         """target = article or comment
@@ -43,7 +42,7 @@ class Everytime :
         url = f'https://everytime.kr/save/board/{target}/vote'
         body = {'id':target_id,'vote':1}
         response = self.session.post(url=url,data=body,headers=self.hdr)
-        return response.text
+        return response
 
     def get_my_commented_article_list(self,start_num=0) : 
         url = 'https://everytime.kr/find/board/article/list'
@@ -84,9 +83,9 @@ class Everytime :
         url = 'https://everytime.kr/save/board/article'
         body = None
         if title : #freeboard
-            write_body = {'id':target_id,'text':text,'is_anonym':anonym,'title':title} 
+            body = {'id':target_id,'text':text,'is_anonym':anonym,'title':title} 
         else : #not freeboard
-            write_body = {'id':target_id,'text':text,'is_anonym':anonym}
+            body = {'id':target_id,'text':text,'is_anonym':anonym}
 
         write_res = self.session.post(url=url,data=body,headers=self.hdr)
         return write_res

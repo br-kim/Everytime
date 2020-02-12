@@ -5,12 +5,4 @@ https://everytime.kr/
 
 글/댓글 추천, 나의 글/댓글 조회 및 삭제, 게시판에 글 작성 등등 여러 작업을 파이썬으로 더 쉽게 할 수 있습니다.  
 
-기본적으로 requests 모듈이 필요합니다.  
-
-파이썬 3.6 이상
-
-https://pypi.org/project/requests/  
-
-```
-pip install requests  
-```
+파이썬 3.6 이상 버전 필요 (f-string)

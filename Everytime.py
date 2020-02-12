@@ -1,10 +1,32 @@
 import requests
 from bs4 import BeautifulSoup
 
-# class Article:
-#     def __init__(self,title,text,):
-# article id, title, created_at, posvote, user_nickname
-# comment id, parent_id(0 is root) text, created_at, posvote, user_nickname
+
+def make_article_dict(article_obj):
+    article = dict()
+    article['title'] = article_obj.get('title')
+    article['text'] = article_obj.get('text')
+    article['id'] = article_obj.get('id')
+    article['posvote'] = article_obj.get('posvote')
+    article['user_nickname'] = article_obj.get('user_nickname')
+    article['created_at'] = article_obj.get('created_at')
+    return article
+
+
+def make_comment_dict(comment_objs):
+    comments = []
+    for comment_obj in comment_objs:
+        comment = dict()
+        if comment_obj.get('parent_id') == '0':
+            comment['text'] = comment_obj.get('text')
+        else:
+            comment['text'] = 'ㄴ' + comment_obj.get('text')
+        comment['created_at'] = comment_obj.get('created_at')
+        comment['posvote'] = comment_obj.get('posvote')
+        comment['user_nickname'] = comment_obj.get('user_nickname')
+        comments.append(comment)
+    return comments
+
 
 class Everytime:
     hdr = {
@@ -17,7 +39,7 @@ class Everytime:
         'Referer': 'https://everytime.kr/',
         'DNT': '1',
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-        }
+    }
 
     def __init__(self):
         self.session = requests.session()
@@ -74,28 +96,11 @@ class Everytime:
         soup = BeautifulSoup(article_comment_res.text, 'html.parser')
         # article id, title, created_at, posvote, user_nickname
         article_obj = soup.find('article')
-        article = dict()
-        article['title'] = article_obj.get('title')
-        article['text'] = article_obj.get('text')
-        article['id'] = article_obj.get('id')
-        article['posvote'] = article_obj.get('posvote')
-        article['user_nickname'] = article_obj.get('user_nickname')
-        article['created_at'] = article_obj.get('created_at')
+        article = make_article_dict(article_obj)
         # comment id, parent_id(0 is root) text, created_at, posvote, user_nickname
-        comments = list()
-
         comment_objs = soup.find_all('comment')
-        for comment_obj in comment_objs:
-            comment = dict()
-            if comment_obj.get('parent_id') == '0':
-                comment['text'] = comment_obj.get('text')
-            else:
-                comment['text'] = 'ㄴ'+comment_obj.get('text')
-            comment['created_at'] = comment_obj.get('created_at')
-            comment['posvote'] = comment_obj.get('posvote')
-            comment['user_nickname'] = comment_obj.get('user_nickname')
-            comments.append(comment)
-        return article, comments
+        comments = make_comment_dict(comment_objs)
+        return {'article': article, 'comments': comments}
 
     def get_article_list(self, target_board_id,
                          start_num=0):  # target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.

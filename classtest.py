@@ -7,5 +7,6 @@ print(MyET)
 login_result = MyET.login(my_id, my_pw)
 #print(MyET.get_article_list(380299))
 print(MyET.get_article_comment(102179408))
-# for i in MyET.get_article_list(380299):
-#     print(i)
+for i in MyET.get_article_list(380299):
+    print(i['article'])
+    print(i['comments'])

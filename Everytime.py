@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 def make_article_dict(article_obj):
     article = dict()
     article['title'] = article_obj.get('title')
-    article['text'] = article_obj.get('text')
+    article['text'] = article_obj.get('text').replace("<br />", "\n")
     article['id'] = article_obj.get('id')
     article['posvote'] = article_obj.get('posvote')
     article['user_nickname'] = article_obj.get('user_nickname')
@@ -30,7 +30,8 @@ def make_comment_dict(comment_objs):
 
 class Everytime:
     hdr = {
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36",
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" 
+        "Chrome/79.0.3945.88 Safari/537.36",
         'Host': 'everytime.kr',
         'Origin': 'https://everytime.kr',
         'X-Requested-With': 'XMLHttpRequest',
@@ -48,7 +49,7 @@ class Everytime:
 
     def __str__(self):
         if self.login_flag:
-            return f'{self.user_id} logged in session'
+            return f'{self.user_id} logged in session {self.session}'
         else:
             return 'not logged in session'
 
@@ -96,11 +97,14 @@ class Everytime:
         soup = BeautifulSoup(article_comment_res.text, 'html.parser')
         # article id, title, created_at, posvote, user_nickname
         article_obj = soup.find('article')
-        article = make_article_dict(article_obj)
-        # comment id, parent_id(0 is root) text, created_at, posvote, user_nickname
-        comment_objs = soup.find_all('comment')
-        comments = make_comment_dict(comment_objs)
-        return {'article': article, 'comments': comments}
+        if article_obj:  # 해당 id의 글이 존재할 경우
+            article = make_article_dict(article_obj)
+            # comment id, parent_id(0 is root) text, created_at, posvote, user_nickname
+            comment_objs = soup.find_all('comment')
+            comments = make_comment_dict(comment_objs)
+            return {'article': article, 'comments': comments}
+        else:
+            return "This article does not exist."
 
     def get_article_list(self, target_board_id,
                          start_num=0):  # target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.
@@ -117,16 +121,16 @@ class Everytime:
         return articles
 
     # save
-    def write_article(self, text, target_id, title=None, anonym=1):  # 기본으로 익명으로 작성,anonym=0 은 아이디 공개 작성
+    def write_article(self, text, target_id, title=None, anonym=1):  # 기본으로 익명으로 작성, anonym=0 은 아이디 공개 작성
         """ anonym : Writing anonymously => 1 Writing by name => 0 (default 1)
         writing on freeboard need 'title'
         'target_id' => board number
         """
         url = 'https://api.everytime.kr/save/board/article'
         body = None
-        if title:  # freeboard
+        if title:  # 제목이 필요한 게시판
             body = {'id': target_id, 'text': text, 'is_anonym': anonym, 'title': title}
-        else:  # not freeboard
+        else:
             body = {'id': target_id, 'text': text, 'is_anonym': anonym}
 
         write_res = self.session.post(url=url, data=body, headers=self.hdr)

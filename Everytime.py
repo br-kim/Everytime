@@ -1,4 +1,5 @@
 import requests
+import asyncio
 from bs4 import BeautifulSoup
 
 
@@ -30,8 +31,8 @@ def make_comment_dict(comment_objs):
 
 class Everytime:
     hdr = {
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)" 
-        "Chrome/79.0.3945.88 Safari/537.36",
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)"
+                      "Chrome/79.0.3945.88 Safari/537.36",
         'Host': 'everytime.kr',
         'Origin': 'https://everytime.kr',
         'X-Requested-With': 'XMLHttpRequest',
@@ -118,6 +119,35 @@ class Everytime:
         articles = []
         for article in raw_all_article:
             articles.append(self.get_article_comment(article.get('id')))
+        return articles
+
+    async def fetch(self, article_id):
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(None, self.get_article_comment, article_id)
+        return result
+
+    async def async_request(self, ids):
+        tasks = [asyncio.ensure_future(self.fetch(article_id)) for article_id in ids]
+        result = await asyncio.gather(*tasks)
+        return result
+
+    def async_get_article_list(self, target_board_id,
+                               start_num=0):  # target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.
+        """ target_id = target board's number or 'myarticle'(get My writing)
+        async version method
+        """
+        url = 'https://api.everytime.kr/find/board/article/list'
+        body = {'id': target_board_id, 'limit_num': 20, 'start_num': start_num, 'moiminfo': 'true'}
+        article_list_res = self.session.post(url=url, data=body, headers=self.hdr)
+        soup = BeautifulSoup(article_list_res.text, 'html.parser')
+        raw_all_article = soup.find_all("article")
+        article_ids = [i.get('id') for i in raw_all_article]
+        loop = asyncio.new_event_loop()
+        articles = loop.run_until_complete(self.async_request(article_ids))
+        # for article in raw_all_article:
+        #     articles.append(self.get_article_comment(article.get('id')))
+        loop.close()
+        articles.sort(key=lambda x: x['article']['id'], reverse=True)
         return articles
 
     # save

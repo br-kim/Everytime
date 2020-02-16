@@ -18,13 +18,14 @@ def make_comment_dict(comment_objs):
     comments = []
     for comment_obj in comment_objs:
         comment = dict()
-        if comment_obj.get('parent_id') == '0':
+        if comment_obj.get('parent_id') == '0':  # 부모 댓글이 존재하지 않으면 그대로, 존재하면 ㄴ으로 대댓글임을 표시
             comment['text'] = comment_obj.get('text')
         else:
             comment['text'] = 'ㄴ' + comment_obj.get('text')
         comment['created_at'] = comment_obj.get('created_at')
         comment['posvote'] = comment_obj.get('posvote')
         comment['user_nickname'] = comment_obj.get('user_nickname')
+        comment['id'] = comment_obj.get('id')
         comments.append(comment)
     return comments
 

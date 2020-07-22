@@ -14,7 +14,7 @@ def make_article_dict(article_obj):
     return article
 
 
-def make_comment_dict(comment_objs):
+def make_comment_dict_list(comment_objs):
     comments = []
     for comment_obj in comment_objs:
         comment = dict()
@@ -49,7 +49,7 @@ class Everytime:
         self.login_flag = False
         self.user_id = None
 
-    def __str__(self):
+    def __repr__(self):
         if self.login_flag:
             return f'{self.user_id} logged in session {self.session}'
         else:
@@ -103,10 +103,10 @@ class Everytime:
             article = make_article_dict(article_obj)
             # comment id, parent_id(0 is root) text, created_at, posvote, user_nickname
             comment_objs = soup.find_all('comment')
-            comments = make_comment_dict(comment_objs)
+            comments = make_comment_dict_list(comment_objs)
             return {'article': article, 'comments': comments}
         else:
-            return "This article does not exist."
+            return {'article': None, 'comments': None}
 
     def get_article_list(self, target_board_id,
                          start_num=0):  # target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.

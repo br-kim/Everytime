@@ -18,7 +18,7 @@ def make_comment_dict_list(comment_objs):
     comments = []
     for comment_obj in comment_objs:
         comment = dict()
-        if comment_obj.get('parent_id') == '0':  # 부모 댓글이 존재하지 않으면 그대로, 존재하면 ㄴ으로 대댓글임을 표시
+        if comment_obj.get('parent_id') == '0':  # 부모 댓글이 존재하지 않으면 그대로, 존재하면 (대댓글)임을 표시
             comment['text'] = comment_obj.get('text')
         else:
             comment['text'] = '(대댓글)' + comment_obj.get('text')
@@ -79,8 +79,8 @@ class Everytime:
     def get_my_commented_article_list(self, start_num=0):
         url = 'https://api.everytime.kr/find/board/article/list'
         body = {'id': 'mycommentarticle', 'limit_num': 20, 'start_num': start_num, 'moiminfo': 'true'}
-        article_list_res = self.session.post(url=url, data=body, headers=self.hdr)
-        return article_list_res
+        response = self.session.post(url=url, data=body, headers=self.hdr)
+        return response
 
     # remove
     def delete(self, target, target_id):
@@ -89,8 +89,8 @@ class Everytime:
         """
         url = f'https://api.everytime.kr/remove/board/{target}'
         body = {'id': target_id}
-        delete_comment_res = self.session.post(url=url, data=body, headers=self.hdr)
-        return delete_comment_res
+        response = self.session.post(url=url, data=body, headers=self.hdr)
+        return response
 
     def get_article_comment(self, target_article_id):  # target_id 글의 전체 내용과 댓글을 요청한다.
         url = 'https://api.everytime.kr/find/board/comment/list'

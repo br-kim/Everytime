@@ -14,11 +14,11 @@ def make_article_dict(article_obj):
     return article
 
 
-def make_comment_dict(comment_objs):
+def make_comment_dict_list(comment_objs):
     comments = []
     for comment_obj in comment_objs:
         comment = dict()
-        if comment_obj.get('parent_id') == '0':  # 부모 댓글이 존재하지 않으면 그대로, 존재하면 ㄴ으로 대댓글임을 표시
+        if comment_obj.get('parent_id') == '0':  # 부모 댓글이 존재하지 않으면 그대로, 존재하면 (대댓글)임을 표시
             comment['text'] = comment_obj.get('text')
         else:
             comment['text'] = '(대댓글)' + comment_obj.get('text')
@@ -49,7 +49,7 @@ class Everytime:
         self.login_flag = False
         self.user_id = None
 
-    def __str__(self):
+    def __repr__(self):
         if self.login_flag:
             return f'{self.user_id} logged in session {self.session}'
         else:
@@ -79,8 +79,13 @@ class Everytime:
     def get_my_commented_article_list(self, start_num=0):
         url = 'https://api.everytime.kr/find/board/article/list'
         body = {'id': 'mycommentarticle', 'limit_num': 20, 'start_num': start_num, 'moiminfo': 'true'}
-        article_list_res = self.session.post(url=url, data=body, headers=self.hdr)
-        return article_list_res
+        res = self.session.post(url=url, data=body, headers=self.hdr)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        articles_soup = soup.find_all('article')
+        articles= []
+        for article in articles_soup:
+            articles.append(self.get_article_comment(article["id"]))
+        return articles
 
     # remove
     def delete(self, target, target_id):
@@ -89,8 +94,8 @@ class Everytime:
         """
         url = f'https://api.everytime.kr/remove/board/{target}'
         body = {'id': target_id}
-        delete_comment_res = self.session.post(url=url, data=body, headers=self.hdr)
-        return delete_comment_res
+        response = self.session.post(url=url, data=body, headers=self.hdr)
+        return response
 
     def get_article_comment(self, target_article_id):  # target_id 글의 전체 내용과 댓글을 요청한다.
         url = 'https://api.everytime.kr/find/board/comment/list'
@@ -103,10 +108,10 @@ class Everytime:
             article = make_article_dict(article_obj)
             # comment id, parent_id(0 is root) text, created_at, posvote, user_nickname
             comment_objs = soup.find_all('comment')
-            comments = make_comment_dict(comment_objs)
+            comments = make_comment_dict_list(comment_objs)
             return {'article': article, 'comments': comments}
         else:
-            return "This article does not exist."
+            return {'article': None, 'comments': None}
 
     def get_article_list(self, target_board_id,
                          start_num=0):  # target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.

@@ -79,8 +79,10 @@ class Everytime:
     def get_my_commented_article_list(self, start_num=0):
         url = 'https://api.everytime.kr/find/board/article/list'
         body = {'id': 'mycommentarticle', 'limit_num': 20, 'start_num': start_num, 'moiminfo': 'true'}
-        response = self.session.post(url=url, data=body, headers=self.hdr)
-        return response
+        res = self.session.post(url=url, data=body, headers=self.hdr)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        print(123)
+        return soup
 
     # remove
     def delete(self, target, target_id):

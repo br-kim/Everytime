@@ -23,15 +23,18 @@ def msrstn_query(res_dict):
                 'stationName': msrstn, 'dataTerm': 'DAILY', 'ver': "1.0"}
         res = requests.post(url, data=body, verify=False)
         # print(res.text)
-        result = make_item_dict(res)
+        result = make_item_dict_list(res)
         if len(result) != 0:
-            res_list.append((loc, result[0]))
+            res_list.append({
+                'location': loc,
+                'weather_data': result[0]
+            })
         else:
             pass
     return res_list
 
 
-def make_item_dict(res):  # ./body/items xml을 dict로 바꾼다.
+def make_item_dict_list(res):  # ./body/items xml을 dict로 바꾼다.
     tree = ET.fromstring(res.text)
     items_tag = tree.find('./body/items')
     item_list = []
@@ -53,7 +56,7 @@ def query_md(pos_dict):  # X,Y좌표가 담긴 json을 받아서 그 좌표에�
         url = "http://openapi.airkorea.or.kr/openapi/services/rest/MsrstnInfoInqireSvc/getNearbyMsrstnList"
         body = {'ServiceKey': service_key, 'tmX': pos_x, 'tmY': pos_y}
         res = requests.post(url, data=body, verify=False)
-        msrstn_dict[location] = make_item_dict(res)
+        msrstn_dict[location] = make_item_dict_list(res)
     return msrstn_dict
 
 
@@ -63,47 +66,49 @@ def query_pos(dong, num=1):  # 지역 이름을 입력받아 해당 지역의 X,
     s = requests.session()
     s.mount("http://", HTTPAdapter(max_retries=3))
     res = s.post(url, data=body, verify=False)
-    return make_item_dict(res)
+    return make_item_dict_list(res)
 
 
-def parse_result(res):
+def result_dict_naming(res): # response에서 원하는 리스트만 새로 dict 만들어서 값을 등급으로 바꾸고 리턴한다.
     grade_list = {'-': None, '1': '좋음', '2': '보통', '3': '나쁨', '4': '매우 나쁨'}
     print_list = ['pm10Value', 'pm25Value', 'pm10Grade', 'pm25Grade']
-    loc = res[0]
-    result = res[1]
-    ret = []
-    ret.append(loc)
-    for i in print_list:
-        if 'Grade' in i:
-            ret.append((i, grade_list[result[i]]))
-        else:
-            ret.append((i, result[i]))
-    return ret
+    loc = res['location']
+    weather_data_dict = res['weather_data']
+    ret = dict()
+    for weather_data in weather_data_dict:
+        if weather_data in print_list:
+            if 'Grade' in weather_data:
+                if weather_data_dict[weather_data] == None:
+                    ret[weather_data] = None
+                else:
+                    ret[weather_data] = grade_list[weather_data_dict[weather_data]]
+            else:
+                ret[weather_data] = weather_data_dict[weather_data]
+    return {"location": loc, "weather_data": ret}
 
 
-def make_string(obj):
-    a = []
-    for i in obj:
-        print(i)
-        if hasattr(i, '__iter__') and not isinstance(i, str):
-            a += make_string(i)
-        elif isinstance(i, str):
-            a.append(i)
-    return a
-
-result = query_pos("원미동")
+result = query_pos("원미구")
 print(result)
+print('-----------------')
 print()
 a = query_md(result)
-print()
+print('-----------------')
+query_result = msrstn_query(a)
+print(query_result)
+print('-------------')
+for i in query_result:
+    data = result_dict_naming(i)
+    print(data['location'])
+    for i in data['weather_data']:
+        print(i, data['weather_data'][i])
 
-my_id = apikey.my_id
-my_pwd = apikey.my_pwd
-et_session = Everytime()
-res = et_session.login(my_id, my_pwd)
-print(res.text)
-for i in msrstn_query(a):
-    print(parse_result(i))
-    time.sleep(5)
-    a = make_string(parse_result(i))
-    et_session.write_article("\n".join(a), 428564)
+# my_id = apikey.my_id
+# my_pwd = apikey.my_pwd
+# et_session = Everytime()
+# res = et_session.login(my_id, my_pwd)
+# print(res.text)
+# for i in msrstn_query(a):
+#     print(parse_result(i))
+#     time.sleep(5)
+#     a = make_string(parse_result(i))
+#     et_session.write_article("\n".join(a), 428564)

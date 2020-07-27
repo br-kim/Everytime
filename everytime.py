@@ -3,32 +3,6 @@ import asyncio
 from bs4 import BeautifulSoup
 
 
-def make_article_dict(article_obj):
-    article = dict()
-    article['title'] = article_obj.get('title')
-    article['text'] = article_obj.get('text').replace("<br />", "\n")
-    article['id'] = article_obj.get('id')
-    article['posvote'] = article_obj.get('posvote')
-    article['user_nickname'] = article_obj.get('user_nickname')
-    article['created_at'] = article_obj.get('created_at')
-    return article
-
-
-def make_comment_dict_list(comment_objs):
-    comments = []
-    for comment_obj in comment_objs:
-        comment = dict()
-        if comment_obj.get('parent_id') == '0':  # 부모 댓글이 존재하지 않으면 그대로, 존재하면 (대댓글)임을 표시
-            comment['text'] = comment_obj.get('text')
-        else:
-            comment['text'] = '(대댓글)' + comment_obj.get('text')
-        comment['created_at'] = comment_obj.get('created_at')
-        comment['posvote'] = comment_obj.get('posvote')
-        comment['user_nickname'] = comment_obj.get('user_nickname')
-        comment['id'] = comment_obj.get('id')
-        comments.append(comment)
-    return comments
-
 
 class Everytime:
     hdr = {
@@ -76,16 +50,30 @@ class Everytime:
         response = self.session.post(url=url, data=body, headers=self.hdr)
         return response
 
-    def get_my_commented_article_list(self, start_num=0):
-        url = 'https://api.everytime.kr/find/board/article/list'
-        body = {'id': 'mycommentarticle', 'limit_num': 20, 'start_num': start_num, 'moiminfo': 'true'}
-        res = self.session.post(url=url, data=body, headers=self.hdr)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        articles_soup = soup.find_all('article')
-        articles= []
-        for article in articles_soup:
-            articles.append(self.get_article_comment(article["id"]))
-        return articles
+    def make_article_dict(self, article_obj):
+        article = dict()
+        article['title'] = article_obj.get('title')
+        article['text'] = article_obj.get('text').replace("<br />", "\n")
+        article['id'] = article_obj.get('id')
+        article['posvote'] = article_obj.get('posvote')
+        article['user_nickname'] = article_obj.get('user_nickname')
+        article['created_at'] = article_obj.get('created_at')
+        return article
+
+    def make_comment_dict_list(self, comment_objs):
+        comments = []
+        for comment_obj in comment_objs:
+            comment = dict()
+            if comment_obj.get('parent_id') == '0':  # 부모 댓글이 존재하지 않으면 그대로, 존재하면 (대댓글)임을 표시
+                comment['text'] = comment_obj.get('text')
+            else:
+                comment['text'] = '(대댓글)' + comment_obj.get('text')
+            comment['created_at'] = comment_obj.get('created_at')
+            comment['posvote'] = comment_obj.get('posvote')
+            comment['user_nickname'] = comment_obj.get('user_nickname')
+            comment['id'] = comment_obj.get('id')
+            comments.append(comment)
+        return comments
 
     # remove
     def delete(self, target, target_id):
@@ -97,6 +85,17 @@ class Everytime:
         response = self.session.post(url=url, data=body, headers=self.hdr)
         return response
 
+    def get_my_commented_article_list(self, start_num=0):
+        url = 'https://api.everytime.kr/find/board/article/list'
+        body = {'id': 'mycommentarticle', 'limit_num': 20, 'start_num': start_num, 'moiminfo': 'true'}
+        res = self.session.post(url=url, data=body, headers=self.hdr)
+        soup = BeautifulSoup(res.text, 'html.parser')
+        articles_soup = soup.find_all('article')
+        articles = []
+        for article in articles_soup:
+            articles.append(self.get_article_comment(article["id"]))
+        return articles
+
     def get_article_comment(self, target_article_id):  # target_id 글의 전체 내용과 댓글을 요청한다.
         url = 'https://api.everytime.kr/find/board/comment/list'
         body = {'id': target_article_id, 'limit_num': -1, 'moiminfo': 'true'}
@@ -105,10 +104,10 @@ class Everytime:
         # article id, title, created_at, posvote, user_nickname
         article_obj = soup.find('article')
         if article_obj:  # 해당 id의 글이 존재할 경우
-            article = make_article_dict(article_obj)
+            article = self.make_article_dict(article_obj)
             # comment id, parent_id(0 is root) text, created_at, posvote, user_nickname
             comment_objs = soup.find_all('comment')
-            comments = make_comment_dict_list(comment_objs)
+            comments = self.make_comment_dict_list(comment_objs)
             return {'article': article, 'comments': comments}
         else:
             return {'article': None, 'comments': None}
@@ -126,16 +125,6 @@ class Everytime:
         for article in raw_all_article:
             articles.append(self.get_article_comment(article.get('id')))
         return articles
-
-    async def fetch(self, article_id):
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, self.get_article_comment, article_id)
-        return result
-
-    async def async_request(self, ids):
-        tasks = [asyncio.ensure_future(self.fetch(article_id)) for article_id in ids]
-        result = await asyncio.gather(*tasks)
-        return result
 
     def async_get_article_list(self, target_board_id,
                                start_num=0):  # target_id 게시판의 글 목록을 요청한다. #start_num 입력시 그 번호부터 20개 요청.
@@ -155,6 +144,16 @@ class Everytime:
         loop.close()
         articles.sort(key=lambda x: x['article']['id'], reverse=True)
         return articles
+
+    async def async_request(self, ids):
+        tasks = [asyncio.ensure_future(self.fetch(article_id)) for article_id in ids]
+        result = await asyncio.gather(*tasks)
+        return result
+
+    async def fetch(self, article_id):
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(None, self.get_article_comment, article_id)
+        return result
 
     # save
     def write_article(self, text, target_id, title=None, anonym=1):  # 기본으로 익명으로 작성, anonym=0 은 아이디 공개 작성

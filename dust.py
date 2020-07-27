@@ -1,4 +1,3 @@
-from everytime import Everytime
 import apikey
 import requests
 import xml.etree.ElementTree as ET

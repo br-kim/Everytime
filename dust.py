@@ -85,29 +85,29 @@ def result_dict_naming(res): # response에서 원하는 리스트만 새로 dict
                 ret[weather_data] = weather_data_dict[weather_data]
     return {"location": loc, "weather_data": ret}
 
+if __name__ == "__main__":
+    result = query_pos("원미구")
+    print(result)
+    print('-----------------')
+    print()
+    a = query_md(result)
+    print('-----------------')
+    query_result = msrstn_query(a)
+    print(query_result)
+    print('-------------')
+    for i in query_result:
+        data = result_dict_naming(i)
+        print(data['location'])
+        for i in data['weather_data']:
+            print(i, data['weather_data'][i])
 
-result = query_pos("원미구")
-print(result)
-print('-----------------')
-print()
-a = query_md(result)
-print('-----------------')
-query_result = msrstn_query(a)
-print(query_result)
-print('-------------')
-for i in query_result:
-    data = result_dict_naming(i)
-    print(data['location'])
-    for i in data['weather_data']:
-        print(i, data['weather_data'][i])
-
-# my_id = apikey.my_id
-# my_pwd = apikey.my_pwd
-# et_session = Everytime()
-# res = et_session.login(my_id, my_pwd)
-# print(res.text)
-# for i in msrstn_query(a):
-#     print(parse_result(i))
-#     time.sleep(5)
-#     a = make_string(parse_result(i))
-#     et_session.write_article("\n".join(a), 428564)
+    # my_id = apikey.my_id
+    # my_pwd = apikey.my_pwd
+    # et_session = Everytime()
+    # res = et_session.login(my_id, my_pwd)
+    # print(res.text)
+    # for i in msrstn_query(a):
+    #     print(parse_result(i))
+    #     time.sleep(5)
+    #     a = make_string(parse_result(i))
+    #     et_session.write_article("\n".join(a), 428564)

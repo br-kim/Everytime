@@ -21,7 +21,6 @@ def msrstn_query(res_dict):
         body = {'ServiceKey': service_key, 'numOfRows': 100, 'pageNo': 1,
                 'stationName': msrstn, 'dataTerm': 'DAILY', 'ver': "1.0"}
         res = requests.post(url, data=body, verify=False)
-        # print(res.text)
         result = make_item_dict_list(res)
         if len(result) != 0:
             res_list.append({
@@ -42,7 +41,6 @@ def make_item_dict_list(res):  # ./body/items xml을 dict로 바꾼다.
         for i in item:
             item_info[i.tag] = i.text
         item_list.append(item_info)
-    # print(item_list)
     return item_list
 
 
@@ -68,7 +66,7 @@ def query_pos(dong, num=1):  # 지역 이름을 입력받아 해당 지역의 X,
     return make_item_dict_list(res)
 
 
-def result_dict_naming(res): # response에서 원하는 리스트만 새로 dict 만들어서 값을 등급으로 바꾸고 리턴한다.
+def result_dict_naming(res):  # response에서 원하는 리스트만 새로 dict 만들어서 값을 등급으로 바꾸고 리턴한다.
     grade_list = {'-': None, '1': '좋음', '2': '보통', '3': '나쁨', '4': '매우 나쁨'}
     print_list = ['pm10Value', 'pm25Value', 'pm10Grade', 'pm25Grade']
     loc = res['location']
@@ -77,13 +75,14 @@ def result_dict_naming(res): # response에서 원하는 리스트만 새로 dict
     for weather_data in weather_data_dict:
         if weather_data in print_list:
             if 'Grade' in weather_data:
-                if weather_data_dict[weather_data] == None:
+                if weather_data_dict[weather_data] is None:
                     ret[weather_data] = None
                 else:
                     ret[weather_data] = grade_list[weather_data_dict[weather_data]]
             else:
                 ret[weather_data] = weather_data_dict[weather_data]
     return {"location": loc, "weather_data": ret}
+
 
 if __name__ == "__main__":
     result = query_pos("원미구")
